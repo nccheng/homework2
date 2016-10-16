@@ -26,8 +26,23 @@ class CategoricalPolicy(object):
 
         Sample solution is about 2~4 lines.
         """
+        
         # YOUR CODE HERE >>>>>>
         # probs = ???
+        rand_bound_1 = np.sqrt(6.0/(in_dim + hidden_dim))
+        rand_bound_2 = 4.0 * np.sqrt(6.0/(hidden_dim + out_dim))
+        print(rand_bound_1, rand_bound_2)
+        W_1 = tf.Variable(tf.random_uniform(shape=[in_dim, hidden_dim],
+                                              minval=-rand_bound_1,
+                                            maxval=rand_bound_1))
+        b_1 = tf.Variable(tf.zeros([hidden_dim]))
+        y_1 = tf.tanh(tf.matmul(self._observations, W_1) + b_1)
+        #W_2 = tf.Variable(tf.truncated_normal(shape=[hidden_dim, out_dim], stddev=0.1))
+        W_2 = tf.Variable(tf.random_uniform(shape=[hidden_dim, out_dim],
+                                              minval=-rand_bound_2,
+                                            maxval=rand_bound_2))
+        b_2 = tf.Variable(tf.zeros([out_dim]))
+        probs = tf.nn.softmax(tf.matmul(y_1, W_2) + b_2)
         # <<<<<<<<
 
         # --------------------------------------------------
@@ -70,7 +85,13 @@ class CategoricalPolicy(object):
         """
         # YOUR CODE HERE >>>>>>
         # surr_loss = ???
-        # <<<<<<<<
+        total_time_steps = tf.cast(tf.shape(self._advantages), tf.float32)
+        #print(total_time_steps)
+        #tf.Print(total_time_steps, [total_time_steps])
+        #with  tf.Session() as sess:
+        #    #sess.run(tf.initialize_all_variables())
+        #    print(total_time_steps.eval())
+        surr_loss = -1 * tf.reduce_sum(tf.mul(log_prob, self._advantages)) / total_time_steps        # <<<<<<<<
 
         grads_and_vars = self._opt.compute_gradients(surr_loss)
         train_op = self._opt.apply_gradients(grads_and_vars, name="train_op")
